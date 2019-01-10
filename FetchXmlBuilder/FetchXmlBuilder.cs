@@ -270,9 +270,12 @@ namespace Cinteros.Xrm.FetchXmlBuilder
                 }
             }
             dockControlBuilder.ParseXML(fetchXml, false);
-            tsbReturnToCaller.ToolTipText = "Return " + requestedType + " to " + callerArgs.SourcePlugin;
-            dockControlBuilder.RecordHistory("called from " + message.SourcePlugin);
-            LogUse("CalledBy." + callerArgs.SourcePlugin);
+            if (callerArgs.SourcePlugin != "FetchXML Builder")
+            {
+                tsbReturnToCaller.ToolTipText = "Return " + requestedType + " to " + callerArgs.SourcePlugin;
+                dockControlBuilder.RecordHistory("called from " + message.SourcePlugin);
+                LogUse("CalledBy." + callerArgs.SourcePlugin);
+            }
             EnableControls(true);
         }
 
@@ -807,7 +810,23 @@ namespace Cinteros.Xrm.FetchXmlBuilder
 
         private bool CallerWantsResults()
         {
-            return callerArgs != null;
+            return callerArgs != null && callerArgs.SourcePlugin != "FetchXML Builder";
+        }
+
+        private void Clonequery()
+        {
+            LogUse("Clone");
+            var fetch = dockControlBuilder.GetFetchString(true, true);
+            if (string.IsNullOrWhiteSpace(fetch))
+            {
+                return;
+            }
+            var message = new MessageBusEventArgs("FetchXML Builder")
+            {
+                NewInstance = true,
+                TargetArgument = fetch
+            };
+            OnOutgoingMessage(this, message);
         }
 
         private void CreateRepoMenuItem(QueryDefinition query)
@@ -1863,6 +1882,11 @@ namespace Cinteros.Xrm.FetchXmlBuilder
             about.StartPosition = FormStartPosition.CenterParent;
             about.lblVersion.Text = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             about.ShowDialog();
+        }
+
+        private void tsbClone_Click(object sender, EventArgs e)
+        {
+            Clonequery();
         }
 
         private void tsbCloseThisTab_Click(object sender, EventArgs e)
