@@ -192,3 +192,5 @@ ModelManifest.xml
 /tmp
 /.vs/config/applicationhost.config
 /.vs
+/AE-AutoDeploy.bat
+/AE - How to test deployment locally.txt
